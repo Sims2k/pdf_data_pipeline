@@ -46,7 +46,7 @@ def get_context(query: str, table, num_results: int = 10) -> str:
         source_parts = []
         if filename:
             source_parts.append(filename)
-        if page_numbers:
+        if page_numbers is not None and len(page_numbers) > 0:
             source_parts.append(f"p. {', '.join(str(p) for p in page_numbers)}")
 
         source = f"\nSource: {' - '.join(source_parts)}"

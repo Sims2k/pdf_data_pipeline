@@ -28,10 +28,10 @@ extract_pdf_documents()  # Uncomment this line to extract new PDF documents
 print("Importing chunking functionality...")
 from chunking import chunk_markdown_files
 
-# Directory containing the extracted Markdown files from PDF extraction
+# Directory containing the extracted JSON files from PDF extraction
 extracted_dir = Path("data-pipeline/extracted-pdfs")
-if not list(extracted_dir.glob("*.md")):
-    print("No extracted markdown files found in data-pipeline/extracted-pdfs.")
+if not list(extracted_dir.glob("*.json")):
+    print("No extracted JSON files found in data-pipeline/extracted-pdfs.")
     print("Please run the extraction process (uncomment the extraction code in this file) or add new data.")
     exit(1)
 

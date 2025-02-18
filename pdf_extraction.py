@@ -1,4 +1,5 @@
 import os
+import json
 from pathlib import Path
 from typing import List
 from docling.document_converter import DocumentConverter, PdfFormatOption
@@ -11,22 +12,22 @@ download_models()
 
 # Specify the path where the models are stored.
 # Adjust the artifacts_path below to your preferred directory.
-# artifacts_path = os.path.expanduser("~/.cache/docling/models")
+artifacts_path = os.path.expanduser("~/.cache/docling/models")
 # Alternatively, if you want to store them in a custom location:
-artifacts_path = "/opt/docling_models"
+# artifacts_path = "/opt/docling_models"
 
 def extract_pdf_documents(
     pdf_folder: Path = Path("data-pipeline/pdf-data"),
     output_folder: Path = Path("data-pipeline/extracted-pdfs")
 ) -> List:
     """
-    Extract documents from PDFs using PDF pipeline options and save them as Markdown files.
+    Extract documents from PDFs using PDF pipeline options and save them as JSON files.
     This extraction workflow enables OCR and table structure enrichment, ensuring metadata like
-    page numbers are captured.
+    page numbers are captured in a lossless format.
 
     Args:
         pdf_folder: Directory containing the source PDF files.
-        output_folder: Directory where extracted Markdown files will be saved.
+        output_folder: Directory where extracted JSON files will be saved.
 
     Returns:
         List of document objects extracted by DocumentConverter.
@@ -41,16 +42,16 @@ def extract_pdf_documents(
     # Create the pipeline options using the local artifacts_path.
     pipeline_options = PdfPipelineOptions(
         artifacts_path=artifacts_path,
-        do_ocr=True,
+        # do_ocr=True,
         do_table_structure=True,
-        do_code_enrichment=True,          # Enable code enrichment for code snippets
-        do_formula_enrichment=True,       # Enable formula enrichment for mathematical formulas
-        do_picture_classification=True,   # Classify images if present
-        do_picture_description=True,      # Generate descriptive captions for images
-        generate_page_images=True,        # Capture page images for visual context
-        images_scale=0.8,                 # Adjust the scale of generated images
+        # do_code_enrichment=True,          # Enable code enrichment for code snippets
+        # do_formula_enrichment=True,       # Enable formula enrichment for mathematical formulas
+        # do_picture_classification=True,   # Classify images if present
+        # do_picture_description=True,      # Generate descriptive captions for images
+        # generate_page_images=True,        # Capture page images for visual context
+        # images_scale=0.8,                 # Adjust the scale of generated images
         table_structure_options=dict(
-            mode=TableFormerMode.ACCURATE   # Use an accurate mode for table extraction
+            mode=TableFormerMode.FAST   # Use an accurate mode for table extraction
         ),
         enable_remote_services=False
     )
@@ -68,16 +69,18 @@ def extract_pdf_documents(
         result = doc_converter.convert(str(pdf_file.resolve()))
         if result.document:
             document = result.document
-            markdown_output = document.export_to_markdown()
+            # Export the document to a dictionary and then convert to JSON.
+            doc_dict = document.export_to_dict()
+            json_output = json.dumps(doc_dict)
             documents.append(document)
 
-            # Save the markdown output (without embedding page numbers in the text itself).
-            output_file = output_folder / f"{pdf_file.stem}.md"
+            # Save the JSON output.
+            output_file = output_folder / f"{pdf_file.stem}.json"
             with open(output_file, "w", encoding="utf-8") as f:
-                f.write(markdown_output)
+                f.write(json_output)
 
-            print("Extraction successful. Preview of extracted content:")
-            print(markdown_output[:500])
+            print("Extraction successful. Preview of extracted content (first 500 chars):")
+            print(json_output[:500])
             print("-" * 40 + "\n")
         else:
             print(f"Extraction failed for: {pdf_file}\n")
